@@ -32,6 +32,7 @@ int main(int argc, char* argv[]) {
 	TTF_Init();
 
 	gameBoard board; //import the game map to prevent 
+	gameBoard board2; //import the game map to prevent 
 	SDL_Window* window = SDL_CreateWindow("Conway's game of life", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenX, screenY, SDL_WINDOW_RESIZABLE);
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, NULL);
 	SDL_Event event;
@@ -149,16 +150,16 @@ int main(int argc, char* argv[]) {
 						}
 
 						if (board.board[i][j] == alive && numNeighbors < 2) {
-							board.board[i][j] = dead;
+							board2.board[i][j] = dead;
 						}
 						else if (board.board[i][j] == alive && (numNeighbors == 2 || numNeighbors == 3)) {
-							board.board[i][j] = alive;
+							board2.board[i][j] = alive;
 						}
 						else if (board.board[i][j] == alive && numNeighbors > 3) {
-							board.board[i][j] = dead;
+							board2.board[i][j] = dead;
 						}
 						else if (board.board[i][j] == dead && numNeighbors == 3) {
-							board.board[i][j] = alive;
+							board2.board[i][j] = alive;
 						}
 						//numNeighbors = 0;
 					}
@@ -167,6 +168,7 @@ int main(int argc, char* argv[]) {
 				
 				//numNeighbors = 0;
 			}
+			board = board2;
 SDL_Delay(200);
 			for (int i = 0; i < 113; i++) {
 				for (int j = 0; j < 200; j++) {
