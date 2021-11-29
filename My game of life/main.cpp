@@ -12,6 +12,7 @@
 #include<SDL_ttf.h>
 #include"gameBoard.h"
 #include"button.h"
+#include "main.h"
 
 
 using namespace std;
@@ -27,8 +28,6 @@ int main(int argc, char* argv[]) {
 	int screenX = 1024;
 	int screenY = 576;
 	SDL_Init(SDL_INIT_EVERYTHING);
-
-
 	TTF_Init();
 
 	gameBoard board; //import the game map to prevent 
@@ -44,7 +43,7 @@ int main(int argc, char* argv[]) {
 
 
 	//Setting up main menu text
-	SDL_Surface* mainMenuTextSurf = TTF_RenderText_Solid(impact, "CONWAY'S GAME OF LIFE", White);
+	SDL_Surface* mainMenuTextSurf = TTF_RenderText_Solid(impact, "CONWAY'S GAME OF LIFE", Black);
 	SDL_Texture* mainMenuText = SDL_CreateTextureFromSurface(renderer, mainMenuTextSurf);
 	SDL_FreeSurface(mainMenuTextSurf);
 	SDL_Rect mainMenuRect;
@@ -54,7 +53,7 @@ int main(int argc, char* argv[]) {
 	mainMenuRect.h = 100;
 
 	//Setting up main menu button text
-	SDL_Surface* startButtonSurf = TTF_RenderText_Solid(impact, "START", Black);
+	SDL_Surface* startButtonSurf = TTF_RenderText_Solid(impact, "START", White);
 	SDL_Texture* startButtonText = SDL_CreateTextureFromSurface(renderer, startButtonSurf);
 	SDL_FreeSurface(startButtonSurf);
 	SDL_Rect startButtonRect = { screenX / 2 - 50,screenY / 2 - 150,100,60 };
@@ -68,6 +67,7 @@ int main(int argc, char* argv[]) {
 	int gameState = mainMenu;
 	button mainMenuButton(startButtonRect.x, startButtonRect.y, startButtonRect.w, startButtonRect.h);
 	int numNeighbors = 0;
+	double generationSpeed = 100;
 
 	double adjustedMousePosX = screenX / 200;
 	double adjustedMousePosY = screenY / 113;
@@ -113,73 +113,13 @@ int main(int argc, char* argv[]) {
 				gameState = running;
 			}
 
-			for (int i = 0; i < 113; i++) {
-				for (int j = 0; j < 200; j++) {
-					if (board.board[i][j] == 1) {
-						boardRect.x = j * (screenX / 200);
-						boardRect.y = i * (screenY / 113);
-						SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-						SDL_RenderFillRectF(renderer, &boardRect);
-						
-					}
-					else {
-						boardRect.x = j * (screenX / 200);
-						boardRect.y = i * (screenY / 113);
-						SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-						SDL_RenderDrawRectF(renderer, &boardRect);
-					}
-					
-				}
-			}
+			drawEditingBoard(board, boardRect, screenX, screenY, renderer);
 		}
 		if (gameState == running) {
-			for (int i = 0; i < 113; i++) {
-				for (int j = 0; j < 200; j++) {
-					//numNeighbors = 0;
-					if (i - 1 > 0 && i + 1 < 113 && j - 1 > 0 && j + 1 < 200) {//make sure the game only checks cells that are right next to eachother
-						
-						//count the number of neighbors a cell has
-						for (int a = -1; a < 2; a++) {
-							for (int b = -1; b < 2; b++) {
-								//if (a != 0 && b != 0) {
-									if (board.board[i + a][j + b] == alive && abs(a)+abs(b)!=0) {
-										numNeighbors++;
-									}
-								//}
-							}
-						}
 
-						if (board.board[i][j] == alive && numNeighbors < 2) {
-							board2.board[i][j] = dead;
-						}
-						else if (board.board[i][j] == alive && (numNeighbors == 2 || numNeighbors == 3)) {
-							board2.board[i][j] = alive;
-						}
-						else if (board.board[i][j] == alive && numNeighbors > 3) {
-							board2.board[i][j] = dead;
-						}
-						else if (board.board[i][j] == dead && numNeighbors == 3) {
-							board2.board[i][j] = alive;
-						}
-						//numNeighbors = 0;
-					}
-					numNeighbors = 0;//
-				}
-				
-				//numNeighbors = 0;
-			}
-			board = board2;
-SDL_Delay(200);
-			for (int i = 0; i < 113; i++) {
-				for (int j = 0; j < 200; j++) {
-					if (board.board[i][j] == 1) {
-						boardRect.x = j * (screenX / 200);//screenX/200
-						boardRect.y = i * (screenY / 113);//screenY/113
-						SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-						SDL_RenderFillRectF(renderer, &boardRect);
-					}
-				}
-			}
+			updateBoard(board, numNeighbors, board2);
+			SDL_Delay(100);
+			drawRunningBoard(board, boardRect, screenX, screenY, renderer);
 		}
 
 		SDL_RenderPresent(renderer);
@@ -187,4 +127,88 @@ SDL_Delay(200);
 
 	std::cout << "Hello world" << endl;
 	return 0;
+}
+
+void drawEditingBoard(gameBoard& board, SDL_FRect& boardRect, int screenX, int screenY, SDL_Renderer* renderer)
+{
+	for (int i = 0; i < 113; i++) {
+		for (int j = 0; j < 200; j++) {
+			if (board.board[i][j] == 1) {
+				boardRect.x = j * (screenX / 200);
+				boardRect.y = i * (screenY / 113);
+				SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+				SDL_RenderFillRectF(renderer, &boardRect);
+
+			}
+			else {
+				boardRect.x = j * (screenX / 200);
+				boardRect.y = i * (screenY / 113);
+				SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+				SDL_RenderDrawRectF(renderer, &boardRect);
+			}
+
+		}
+	}
+}
+
+void drawRunningBoard(gameBoard& board, SDL_FRect& boardRect, int screenX, int screenY, SDL_Renderer* renderer)
+{
+	for (int i = 0; i < 113; i++) {
+		for (int j = 0; j < 200; j++) {
+			if (board.board[i][j] == 1) {
+				boardRect.x = j * (screenX / 200);//screenX/200
+				boardRect.y = i * (screenY / 113);//screenY/113
+				SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+				SDL_RenderFillRectF(renderer, &boardRect);
+			}
+		}
+	}
+}
+
+void updateBoard(gameBoard& board, int& numNeighbors, gameBoard& board2)
+{
+	enum cellState {
+		dead, alive
+	};
+	for (int i = 0; i < 113; i++) {
+		for (int j = 0; j < 200; j++) {
+			//numNeighbors = 0;
+			if (i - 1 > 0 && i + 1 < 113 && j - 1 > 0 && j + 1 < 200) {//make sure the game only checks cells that are right next to eachother
+
+				countNeighbors(board, i, j, numNeighbors);
+
+				if (board.board[i][j] == alive && numNeighbors < 2) {
+					board2.board[i][j] = dead;
+				}
+				else if (board.board[i][j] == alive && (numNeighbors == 2 || numNeighbors == 3)) {
+					board2.board[i][j] = alive;
+				}
+				else if (board.board[i][j] == alive && numNeighbors > 3) {
+					board2.board[i][j] = dead;
+				}
+				else if (board.board[i][j] == dead && numNeighbors == 3) {
+					board2.board[i][j] = alive;
+				}
+				//numNeighbors = 0;
+			}
+			numNeighbors = 0;//
+		}
+
+		//numNeighbors = 0;
+	}
+	board = board2;
+}
+
+void countNeighbors(gameBoard& board, int i, int j, int& numNeighbors)
+{
+	//count the number of neighbors a cell has
+	for (int a = -1; a < 2; a++) {
+		for (int b = -1; b < 2; b++) {
+			//if (a != 0 && b != 0) {
+			if (board.board[i + a][j + b] == 1 && abs(a) + abs(b) != 0) {
+				numNeighbors++;
+			}
+			//}
+		}
+	}
 }

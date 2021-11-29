@@ -16,6 +16,6 @@ int button::isClicked(int* mouseCoordX, int* mouseCoordY, Uint32* mouseButtons) 
 }
 
 void button::draw(SDL_Renderer* renderer) {
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderFillRect(renderer, &buttonRect);
 }
